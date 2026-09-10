@@ -200,8 +200,12 @@ public static class BuildEngine
 
     private static string NormalizeVersion(string version)
     {
-        var parts = version.Split('.');
-        var numeric = parts.Select(p => int.TryParse(p, out var n) ? n : 0).ToList();
+        var parts = (string.IsNullOrWhiteSpace(version) ? "1.0.0.0" : version.Trim()).Split('.');
+        if (parts.Length > 4 || parts.Any(p => !ushort.TryParse(p, out _)))
+        {
+            throw new BuildException($"Invalid version '{version}'. Expected up to 4 numeric parts between 0 and 65535 (e.g. 1.2.3.0).");
+        }
+        var numeric = parts.Select(p => (int)ushort.Parse(p)).ToList();
         while (numeric.Count < 4) numeric.Add(0);
         return string.Join('.', numeric.Take(4));
     }
