@@ -27,15 +27,15 @@ internal static class Program
         {
             switch (args[i])
             {
-                case "--in": input = args[++i]; break;
-                case "--out": output = args[++i]; break;
-                case "--entry": entry = args[++i]; break;
-                case "--icon": icon = args[++i]; break;
-                case "--version": version = args[++i]; break;
-                case "--product": product = args[++i]; break;
-                case "--company": company = args[++i]; break;
-                case "--copyright": copyright = args[++i]; break;
-                case "--description": description = args[++i]; break;
+                case "--in": if (!TryNext(args, ref i, out input)) return 1; break;
+                case "--out": if (!TryNext(args, ref i, out output)) return 1; break;
+                case "--entry": if (!TryNext(args, ref i, out entry)) return 1; break;
+                case "--icon": if (!TryNext(args, ref i, out icon)) return 1; break;
+                case "--version": if (!TryNext(args, ref i, out version)) return 1; break;
+                case "--product": if (!TryNext(args, ref i, out product)) return 1; break;
+                case "--company": if (!TryNext(args, ref i, out company)) return 1; break;
+                case "--copyright": if (!TryNext(args, ref i, out copyright)) return 1; break;
+                case "--description": if (!TryNext(args, ref i, out description)) return 1; break;
                 case "--admin": admin = true; break;
                 case "--gui": gui = true; break;
                 case "--pause": pause = true; break;
@@ -66,7 +66,7 @@ internal static class Program
             RequireAdmin = admin,
             ShowConsole = !gui,
             PauseOnExit = pause,
-            Progress = new Progress<string>(line => Console.WriteLine(line)),
+            Progress = new ConsoleProgress(),
         };
 
         var result = await BuildEngine.BuildAsync(options);
@@ -82,6 +82,24 @@ internal static class Program
 
         Console.WriteLine($"Built '{result.OutputPath}'.");
         return 0;
+    }
+
+    private static bool TryNext(string[] args, ref int i, out string value)
+    {
+        if (i + 1 >= args.Length)
+        {
+            Console.Error.WriteLine($"Option '{args[i]}' requires a value.");
+            value = "";
+            return false;
+        }
+        value = args[++i];
+        return true;
+    }
+
+    /// <summary>Writes synchronously, unlike Progress&lt;T&gt; which posts to the thread pool and can drop lines at exit.</summary>
+    private sealed class ConsoleProgress : IProgress<string>
+    {
+        public void Report(string value) => Console.WriteLine(value);
     }
 
     private static void PrintUsage()
