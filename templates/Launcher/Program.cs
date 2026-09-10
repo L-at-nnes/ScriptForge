@@ -19,10 +19,11 @@ internal static class Program
     private static int Main(string[] args)
     {
         var manifest = LoadManifest();
-        var workDir = ExtractPayload(manifest);
+        string? workDir = null;
 
         try
         {
+            workDir = ExtractPayload(manifest);
             var entryPath = Path.Combine(workDir, manifest.Entry.Replace('/', Path.DirectorySeparatorChar));
             var exitCode = manifest.Kind switch
             {
@@ -55,7 +56,7 @@ internal static class Program
         }
         finally
         {
-            TryCleanup(workDir);
+            if (workDir is not null) TryCleanup(workDir);
         }
     }
 
