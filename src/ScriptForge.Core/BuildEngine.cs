@@ -13,12 +13,15 @@ public static class BuildEngine
     public static async Task<BuildResult> BuildAsync(BuildOptions options, CancellationToken ct = default)
     {
         var progress = options.Progress;
+        var outputPath = NormalizeOutputPath(options.OutputPath);
         string buildDir = CreateTempDir();
 
         try
         {
             progress?.Report("Resolving input...");
-            var input = ResolveInput(options);
+            var version = NormalizeVersion(options.Version);
+            ValidateIcon(options.IconPath);
+            var input = ResolveInput(options, outputPath);
 
             progress?.Report("Preparing launcher project...");
             var templateDir = TemplateLocator.LocateLauncherTemplate();
@@ -39,8 +42,7 @@ public static class BuildEngine
                 buildDir,
                 options.RequireAdmin ? "app.admin.manifest" : "app.asinvoker.manifest");
 
-            var assemblyName = Path.GetFileNameWithoutExtension(options.OutputPath);
-            var version = NormalizeVersion(options.Version);
+            var assemblyName = SanitizeAssemblyName(Path.GetFileNameWithoutExtension(outputPath));
             var publishDir = Path.Combine(buildDir, "publish");
             var csprojPath = Path.Combine(buildDir, "Launcher.csproj");
 
@@ -55,25 +57,25 @@ public static class BuildEngine
                     $"Build finished but expected output '{producedExe}' was not found.", log);
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(options.OutputPath))!);
-            File.Copy(producedExe, options.OutputPath, overwrite: true);
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
+            File.Copy(producedExe, outputPath, overwrite: true);
 
             progress?.Report("Done.");
-            return new BuildResult { Success = true, OutputPath = options.OutputPath, Log = log };
+            return new BuildResult { Success = true, OutputPath = outputPath, Log = log };
         }
         catch (BuildException ex)
         {
             return new BuildResult
             {
                 Success = false,
-                OutputPath = options.OutputPath,
+                OutputPath = outputPath,
                 Error = ex.Message,
                 Log = ex.Log,
             };
         }
         catch (Exception ex)
         {
-            return new BuildResult { Success = false, OutputPath = options.OutputPath, Error = ex.Message };
+            return new BuildResult { Success = false, OutputPath = outputPath, Error = ex.Message };
         }
         finally
         {
@@ -83,7 +85,7 @@ public static class BuildEngine
 
     private readonly record struct ResolvedInput(string Root, string EntryRelativePath, string Kind, IReadOnlyList<string> AllFiles);
 
-    private static ResolvedInput ResolveInput(BuildOptions options)
+    private static ResolvedInput ResolveInput(BuildOptions options, string outputPath)
     {
         var input = options.InputPath;
 
@@ -100,7 +102,7 @@ public static class BuildEngine
         }
 
         var root = Path.GetFullPath(input);
-        var outputFull = Path.GetFullPath(options.OutputPath);
+        var outputFull = Path.GetFullPath(outputPath);
         var allFiles = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
             .Where(f => !IsInBinOrObj(root, f))
             .Where(f => !string.Equals(Path.GetFullPath(f), outputFull, StringComparison.OrdinalIgnoreCase))
@@ -200,6 +202,34 @@ public static class BuildEngine
         return sb.ToString();
     }
 
+    private static string NormalizeOutputPath(string path) =>
+        path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? path : path + ".exe";
+
+    /// <summary>The output file name becomes the MSBuild AssemblyName, so keep it to safe characters.</summary>
+    private static string SanitizeAssemblyName(string name)
+    {
+        var sb = new StringBuilder(name.Length);
+        foreach (var c in name)
+        {
+            sb.Append(char.IsLetterOrDigit(c) || c is '.' or '-' or '_' or ' ' ? c : '_');
+        }
+        var result = sb.ToString().Trim();
+        return result.Length == 0 ? "Script" : result;
+    }
+
+    private static void ValidateIcon(string? iconPath)
+    {
+        if (string.IsNullOrWhiteSpace(iconPath)) return;
+        if (!Path.GetExtension(iconPath).Equals(".ico", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new BuildException("Icon must be a .ico file.");
+        }
+        if (!File.Exists(iconPath))
+        {
+            throw new BuildException($"Icon file '{iconPath}' does not exist.");
+        }
+    }
+
     private static string NormalizeVersion(string version)
     {
         var parts = (string.IsNullOrWhiteSpace(version) ? "1.0.0.0" : version.Trim()).Split('.');
@@ -250,14 +280,6 @@ public static class BuildEngine
 
         if (!string.IsNullOrWhiteSpace(options.IconPath))
         {
-            if (!Path.GetExtension(options.IconPath).Equals(".ico", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new BuildException("Icon must be a .ico file.");
-            }
-            if (!File.Exists(options.IconPath))
-            {
-                throw new BuildException($"Icon file '{options.IconPath}' does not exist.");
-            }
             args.Add($"-p:ApplicationIcon={Escape(Path.GetFullPath(options.IconPath))}");
         }
 
