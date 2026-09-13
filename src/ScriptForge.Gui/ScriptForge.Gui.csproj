@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ScriptForge.Gui</RootNamespace>
+    <AssemblyName>ScriptForge</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScriptForge.Core\ScriptForge.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Ship the Launcher template next to the GUI so BuildEngine can find it at runtime. -->
+  <ItemGroup>
+    <None Include="..\..\templates\Launcher\**\*" CopyToOutputDirectory="PreserveNewest" Link="templates\Launcher\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\..\templates\Launcher\bin\**;..\..\templates\Launcher\obj\**" />
+  </ItemGroup>
+
+</Project>

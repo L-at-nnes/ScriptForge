@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ScriptForge.Cli/ScriptForge.Cli.csproj" />
+    <Project Path="src/ScriptForge.Core/ScriptForge.Core.csproj" />
+    <Project Path="src/ScriptForge.Gui/ScriptForge.Gui.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,13 @@
+# Build artifacts
+bin/
+obj/
+publish/
+
+# User/IDE files
+*.user
+.vs/
+.idea/
+
+# ScriptForge scratch/test outputs
+test/
+*.exe

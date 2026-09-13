@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ScriptForge.Cli</RootNamespace>
+    <AssemblyName>scriptforge</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScriptForge.Core\ScriptForge.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Ship the Launcher template next to the CLI so BuildEngine can find it at runtime. -->
+  <ItemGroup>
+    <None Include="..\..\templates\Launcher\**\*" CopyToOutputDirectory="PreserveNewest" Link="templates\Launcher\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\..\templates\Launcher\bin\**;..\..\templates\Launcher\obj\**" />
+  </ItemGroup>
+
+</Project>
