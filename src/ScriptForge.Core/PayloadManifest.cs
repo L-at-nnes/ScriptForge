@@ -6,6 +6,7 @@ internal sealed class PayloadManifest
     public string Entry { get; set; } = "";
     public string Kind { get; set; } = "ps1";
     public bool Console { get; set; } = true;
+    public bool PauseOnExit { get; set; }
     public List<PayloadFileEntry> Files { get; set; } = new();
 }
 

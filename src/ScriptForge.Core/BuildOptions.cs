@@ -37,6 +37,10 @@ public sealed class BuildOptions
     /// If false, it runs windowed with no console (GUI mode); failures are shown in a message box.</summary>
     public bool ShowConsole { get; init; } = true;
 
+    /// <summary>When <see cref="ShowConsole"/> is true, wait for a key press before the console
+    /// window closes, so double-clicking the exe doesn't just flash a window and vanish.</summary>
+    public bool PauseOnExit { get; init; }
+
     /// <summary>Optional progress/log sink.</summary>
     public IProgress<string>? Progress { get; init; }
 }

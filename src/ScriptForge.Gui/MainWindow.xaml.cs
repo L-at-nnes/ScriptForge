@@ -13,6 +13,13 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+    private void ChkGui_Changed(object sender, RoutedEventArgs e)
+    {
+        if (ChkPause is null) return;
+        ChkPause.IsEnabled = ChkGui.IsChecked != true;
+        if (!ChkPause.IsEnabled) ChkPause.IsChecked = false;
+    }
+
     private void SourceKind_Changed(object sender, RoutedEventArgs e)
     {
         if (EntryPanel is null) return;
@@ -100,6 +107,7 @@ public partial class MainWindow : Window
             Description = TxtDescription.Text.Trim(),
             RequireAdmin = ChkAdmin.IsChecked == true,
             ShowConsole = ChkGui.IsChecked != true,
+            PauseOnExit = ChkPause.IsChecked == true,
             Progress = new Progress<string>(AppendLog),
         };
 

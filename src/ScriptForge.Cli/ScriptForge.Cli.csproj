@@ -7,6 +7,19 @@
     <Nullable>enable</Nullable>
     <RootNamespace>ScriptForge.Cli</RootNamespace>
     <AssemblyName>scriptforge</AssemblyName>
+
+    <Version>1.0.0.0</Version>
+    <Product>ScriptForge</Product>
+    <AssemblyTitle>Convert PowerShell and batch scripts into standalone Windows executables (command line).</AssemblyTitle>
+    <Description>Convert PowerShell and batch scripts into standalone Windows executables (command line).</Description>
+
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>

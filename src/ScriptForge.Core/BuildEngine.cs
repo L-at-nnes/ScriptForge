@@ -30,6 +30,7 @@ public static class BuildEngine
             progress?.Report("Embedding script payload...");
             var manifest = BuildPayload(input, payloadDir);
             manifest.Console = options.ShowConsole;
+            manifest.PauseOnExit = options.PauseOnExit;
             File.WriteAllText(
                 Path.Combine(payloadDir, "manifest.json"),
                 JsonSerializer.Serialize(manifest, JsonOptions));

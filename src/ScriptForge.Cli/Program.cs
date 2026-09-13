@@ -21,7 +21,7 @@ internal static class Program
 
         string? input = null, output = null, entry = null, icon = null;
         string version = "1.0.0.0", product = "", company = "", copyright = "", description = "";
-        bool admin = false, gui = false;
+        bool admin = false, gui = false, pause = false;
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -38,6 +38,7 @@ internal static class Program
                 case "--description": description = args[++i]; break;
                 case "--admin": admin = true; break;
                 case "--gui": gui = true; break;
+                case "--pause": pause = true; break;
                 default:
                     Console.Error.WriteLine($"Unknown option '{args[i]}'.");
                     return 1;
@@ -64,6 +65,7 @@ internal static class Program
             Description = description,
             RequireAdmin = admin,
             ShowConsole = !gui,
+            PauseOnExit = pause,
             Progress = new Progress<string>(line => Console.WriteLine(line)),
         };
 
@@ -104,6 +106,7 @@ internal static class Program
           --description <text>    file description
           --admin                 require administrator privileges (UAC)
           --gui                   build a windowed app with no console window
+          --pause                 wait for a key press before the console window closes
         """);
     }
 }

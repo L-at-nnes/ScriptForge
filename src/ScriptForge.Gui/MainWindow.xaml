@@ -131,7 +131,9 @@
                     <StackPanel>
                         <TextBlock Text="Options" Style="{StaticResource SectionHeaderStyle}"/>
                         <CheckBox x:Name="ChkAdmin" Content="Require administrator privileges (UAC)" Margin="0,0,0,8"/>
-                        <CheckBox x:Name="ChkGui" Content="Windowed application — hide console window (no output)"/>
+                        <CheckBox x:Name="ChkGui" Content="Windowed application — hide console window (no output)"
+                                  Checked="ChkGui_Changed" Unchecked="ChkGui_Changed" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="ChkPause" Content="Keep the console window open until a key is pressed"/>
                     </StackPanel>
                 </Border>
 

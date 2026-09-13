@@ -11,3 +11,4 @@ publish/
 # ScriptForge scratch/test outputs
 test/
 *.exe
+dist/

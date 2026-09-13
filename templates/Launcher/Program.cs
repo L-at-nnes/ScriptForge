@@ -24,12 +24,29 @@ internal static class Program
         try
         {
             var entryPath = Path.Combine(workDir, manifest.Entry.Replace('/', Path.DirectorySeparatorChar));
-            return manifest.Kind switch
+            var exitCode = manifest.Kind switch
             {
                 "ps1" => RunPowerShell(entryPath, workDir, args, manifest.Console),
                 "bat" => RunBatch(entryPath, workDir, args, manifest.Console),
                 _ => throw new NotSupportedException($"Unknown script kind '{manifest.Kind}'."),
             };
+
+            if (manifest.Console && manifest.PauseOnExit)
+            {
+                Console.WriteLine();
+                Console.Write("Press any key to close . . .");
+                try
+                {
+                    Console.ReadKey(intercept: true);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Input is redirected (e.g. launched from a script/pipe) - just read a line instead.
+                    Console.ReadLine();
+                }
+            }
+
+            return exitCode;
         }
         catch (Exception ex)
         {
@@ -163,6 +180,7 @@ internal sealed class PayloadManifest
     public string Entry { get; set; } = "";
     public string Kind { get; set; } = "ps1";
     public bool Console { get; set; } = true;
+    public bool PauseOnExit { get; set; } = false;
     public PayloadFile[] Files { get; set; } = Array.Empty<PayloadFile>();
 }
 
