@@ -76,7 +76,12 @@ public partial class MainWindow : Window
             TxtIcon.Text = dialog.FileName;
             try
             {
-                IconPreview.Source = new BitmapImage(new Uri(dialog.FileName));
+                var image = new BitmapImage();
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad; // don't keep the .ico file locked
+                image.UriSource = new Uri(dialog.FileName);
+                image.EndInit();
+                IconPreview.Source = image;
             }
             catch
             {
@@ -115,7 +120,8 @@ public partial class MainWindow : Window
         TxtLog.Clear();
         TxtStatus.Text = "Building...";
 
-        var result = await BuildEngine.BuildAsync(options);
+        // Run off the UI thread: input resolution and file copying are synchronous and would freeze the window.
+        var result = await Task.Run(() => BuildEngine.BuildAsync(options));
 
         SetBusy(false);
 
