@@ -18,7 +18,17 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
-        var manifest = LoadManifest();
+        PayloadManifest manifest;
+        try
+        {
+            manifest = LoadManifest();
+        }
+        catch (Exception ex)
+        {
+            ReportFailure(ex.Message, console: false);
+            return 1;
+        }
+
         string? workDir = null;
 
         try
@@ -154,8 +164,14 @@ internal static class Program
         return proc.ExitCode;
     }
 
-    private static string EscapeArg(string arg) =>
-        arg.Contains(' ') ? $"\"{arg}\"" : arg;
+    private static string EscapeArg(string arg)
+    {
+        if (arg.Length > 0 && arg.IndexOfAny(new[] { ' ', '	', '&', '|', '<', '>', '^', '(', ')', '"' }) < 0)
+        {
+            return arg;
+        }
+        return "\"" + arg.Replace("\"", "\"\"") + "\"";
+    }
 
     private static void ReportFailure(string message, bool console)
     {
