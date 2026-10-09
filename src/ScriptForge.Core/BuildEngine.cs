@@ -100,8 +100,10 @@ public static class BuildEngine
         }
 
         var root = Path.GetFullPath(input);
+        var outputFull = Path.GetFullPath(options.OutputPath);
         var allFiles = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
             .Where(f => !IsInBinOrObj(root, f))
+            .Where(f => !string.Equals(Path.GetFullPath(f), outputFull, StringComparison.OrdinalIgnoreCase))
             .Select(f => Path.GetRelativePath(root, f))
             .ToList();
 
@@ -304,26 +306,25 @@ public static class BuildEngine
         foreach (var dir in Directory.GetDirectories(sourceDir, "*", SearchOption.AllDirectories))
         {
             var name = Path.GetRelativePath(sourceDir, dir);
-            if (name.StartsWith("bin", StringComparison.OrdinalIgnoreCase) ||
-                name.StartsWith("obj", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
+            if (IsBinOrObjSegment(name)) continue;
             Directory.CreateDirectory(Path.Combine(destDir, name));
         }
 
         foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
         {
             var rel = Path.GetRelativePath(sourceDir, file);
-            if (rel.StartsWith("bin", StringComparison.OrdinalIgnoreCase) ||
-                rel.StartsWith("obj", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
+            if (IsBinOrObjSegment(rel)) continue;
             var destPath = Path.Combine(destDir, rel);
             Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
             File.Copy(file, destPath, overwrite: true);
         }
+    }
+
+    private static bool IsBinOrObjSegment(string relativePath)
+    {
+        var first = relativePath.Split('/', '\\')[0];
+        return first.Equals("bin", StringComparison.OrdinalIgnoreCase)
+            || first.Equals("obj", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void TryDeleteDirectory(string dir)
