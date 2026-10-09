@@ -10,7 +10,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>app.ico</ApplicationIcon>
 
-    <Version>1.0.0.0</Version>
+    <Version>1.1.0.0</Version>
     <Product>ScriptForge</Product>
     <AssemblyTitle>Convert PowerShell and batch scripts into standalone Windows executables.</AssemblyTitle>
     <Description>Convert PowerShell and batch scripts into standalone Windows executables.</Description>
