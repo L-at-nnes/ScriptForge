@@ -40,6 +40,7 @@ Options:
   --description <text>    file description
   --admin                 require administrator privileges (UAC)
   --gui                   build a windowed app with no console window
+  --pause                 wait for a key press before the console window closes
 ```
 
 ## Requirements
