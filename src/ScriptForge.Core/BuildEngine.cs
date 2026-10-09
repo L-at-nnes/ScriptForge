@@ -217,11 +217,11 @@ public static class BuildEngine
     {
         var args = new List<string>
         {
-            "publish", $"\"{csprojPath}\"",
+            "publish", csprojPath,
             "-c", "Release",
             "-r", "win-x64",
             "--self-contained", "true",
-            "-o", $"\"{publishDir}\"",
+            "-o", publishDir,
             "--nologo",
             "-v", "minimal",
             $"-p:AssemblyName={assemblyName}",
@@ -229,17 +229,17 @@ public static class BuildEngine
             $"-p:FileVersion={version}",
             $"-p:AssemblyVersion={version}",
             $"-p:OutputType={(options.ShowConsole ? "Exe" : "WinExe")}",
-            $"-p:ApplicationManifest=\"{manifestXmlPath}\"",
+            $"-p:ApplicationManifest={Escape(manifestXmlPath)}",
         };
 
-        if (!string.IsNullOrWhiteSpace(options.Product)) args.Add($"-p:Product=\"{Escape(options.Product)}\"");
-        if (!string.IsNullOrWhiteSpace(options.Company)) args.Add($"-p:Company=\"{Escape(options.Company)}\"");
-        if (!string.IsNullOrWhiteSpace(options.Copyright)) args.Add($"-p:Copyright=\"{Escape(options.Copyright)}\"");
+        if (!string.IsNullOrWhiteSpace(options.Product)) args.Add($"-p:Product={Escape(options.Product)}");
+        if (!string.IsNullOrWhiteSpace(options.Company)) args.Add($"-p:Company={Escape(options.Company)}");
+        if (!string.IsNullOrWhiteSpace(options.Copyright)) args.Add($"-p:Copyright={Escape(options.Copyright)}");
         if (!string.IsNullOrWhiteSpace(options.Description))
         {
             // Win32 "File description" comes from AssemblyTitle, not the NuGet-style "Description" property.
-            args.Add($"-p:AssemblyTitle=\"{Escape(options.Description)}\"");
-            args.Add($"-p:Description=\"{Escape(options.Description)}\"");
+            args.Add($"-p:AssemblyTitle={Escape(options.Description)}");
+            args.Add($"-p:Description={Escape(options.Description)}");
         }
 
         if (!string.IsNullOrWhiteSpace(options.IconPath))
@@ -252,22 +252,25 @@ public static class BuildEngine
             {
                 throw new BuildException($"Icon file '{options.IconPath}' does not exist.");
             }
-            args.Add($"-p:ApplicationIcon=\"{Path.GetFullPath(options.IconPath)}\"");
+            args.Add($"-p:ApplicationIcon={Escape(Path.GetFullPath(options.IconPath))}");
         }
 
         var psi = new ProcessStartInfo("dotnet")
         {
-            Arguments = string.Join(' ', args),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+        foreach (var arg in args) psi.ArgumentList.Add(arg);
 
         using var proc = Process.Start(psi)!;
-        var stdout = await proc.StandardOutput.ReadToEndAsync(ct);
-        var stderr = await proc.StandardError.ReadToEndAsync(ct);
+        // Read both streams concurrently: draining one after the other can deadlock if the other fills its pipe buffer.
+        var stdoutTask = proc.StandardOutput.ReadToEndAsync(ct);
+        var stderrTask = proc.StandardError.ReadToEndAsync(ct);
         await proc.WaitForExitAsync(ct);
+        var stdout = await stdoutTask;
+        var stderr = await stderrTask;
 
         var log = stdout + Environment.NewLine + stderr;
         options.Progress?.Report(log);
@@ -280,7 +283,10 @@ public static class BuildEngine
         return log;
     }
 
-    private static string Escape(string value) => value.Replace("\"", "\\\"");
+    /// <summary>Escapes MSBuild special characters so values (e.g. "a;b" or "100%") reach the property verbatim.</summary>
+    private static string Escape(string value) => value
+        .Replace("%", "%25").Replace(";", "%3B").Replace("$", "%24").Replace("@", "%40")
+        .Replace("'", "%27").Replace("(", "%28").Replace(")", "%29").Replace("*", "%2A").Replace("?", "%3F");
 
     private static string CreateTempDir()
     {
