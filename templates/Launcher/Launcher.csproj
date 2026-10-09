@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Payload\**\*" />
+    <EmbeddedResource Include="Payload\**\*" WithCulture="false" />
   </ItemGroup>
 
 </Project>
